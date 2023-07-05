@@ -1,0 +1,23 @@
+--extra-index-url https://download.pytorch.org/whl/cu113
+torch
+torchvision
+torchaudio
+pandas==1.5.0
+cython
+easydict
+matplotlib
+networkx==2.8.7
+numpy
+pyyaml
+scipy
+pyemd
+gdown
+einops
+sympy
+tensorboard
+ml_collections
+ema_pytorch
+timm
+molsets
+rdkit
+git+https://github.com/fabriziocosta/EDeN.git

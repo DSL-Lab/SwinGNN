@@ -1,0 +1,70 @@
+
+# the output files will be stored in the directory <exp_dir>/<exp_name>
+exp_dir: exp
+exp_name: grid_edm_swin_gnn
+
+seed: 1234
+
+dataset:
+  name: grid                # name of the dataset, the pickle file should be data/<name>.pkl
+  max_node_num: 384
+  subset: null              # set to None to use the whole dataset, otherwise a subset is used
+
+mcmc:                       # hyper parameters in the Langevin MC sampling
+  name: edm                 # 'diffusion' for DDPM, 'score' for score-based model, 'edm' for cont. time EDM
+  precond: edm              # EDM-specific options, network preconditioning method
+  sigma_dist: edm           # EDM-specific options, sigma distribution
+  num_steps: 256            # number of sampling steps
+  sample_clip:              # data clipping during sampling
+    min: -1.0
+    max: 1.0
+    scope: x_0              # clip predicted x_0 by default
+
+
+model:
+  name: swin_gnn            # the name of the backbone network
+  feature_dims:             # number of channels
+  - 60
+  depths:                   # multipliers for #channel, each means a down/up sampling block
+    - 1
+    - 1
+    - 3
+    - 1
+  window_size: 6
+  patch_size: 4
+
+test:
+  batch_size: 0             # testing batch size
+  eval_size: 0              # number of samples to evaluate, set to 0 to use the whole dataset
+
+train:
+  batch_size: 80            # training batch size
+
+  lr_dacey: 1.0             # optimizer (Adam)
+  lr_init: 1.0e-4
+  weight_decay: 0.0
+
+  max_epoch: 12501          # training epochs
+  sample_interval: 100      # run sampling after <sample_interval> epochs
+  save_interval: 100        # save the model after <save_interval> epochs
+
+  ema_coef:                 # exponential moving average coefficient
+    - 0.9
+    - 0.95
+    - 0.99
+    - 0.999
+    - 0.9999
+
+  node_encoding: ddpm       # node encoding in ['one_hot', 'softmax', 'ddpm', 'bits']
+  edge_encoding: ddpm       # edge encoding in ['one_hot', 'softmax', 'ddpm', 'bits']
+
+  reweight_entry: false     # reweight loss based on original adj, increase weight for entries == 1
+
+  edge_loss_weight: 1.0     # edge training loss weight
+  node_loss_weight: 1.0     # node training loss weight
+
+  # below are some debug options
+  matching: false           # graph matching loss
+  gt_score_pred: false      # use the ground-truth score to replace the objective, only works for epsilon-prediction mode
+  permutation_aug: false    # permute the input-output randomly to augment training
+  self_cond: true           # use self-conditioning trick

@@ -1,0 +1,10 @@
+name: scorenet
+channels:
+  - defaults
+  - conda-forge
+  - pytorch
+dependencies:
+  - python=3.8
+  - pip
+  - pip:
+      - -r requirements.txt

@@ -1,0 +1,66 @@
+
+# the output files will be stored in the directory <exp_dir>/<exp_name>
+exp_dir: exp
+exp_name: dd_edm_unet
+
+seed: 1234
+
+dataset:
+  name: dd                  # name of the dataset, the pickle file should be data/<name>.pkl
+  max_node_num: 512
+  subset: null              # set to None to use the whole dataset, otherwise a subset is used
+
+mcmc:                       # hyper parameters in the Langevin MC sampling
+  name: edm                 # 'diffusion' for DDPM, 'score' for score-based model, 'edm' for cont. time EDM
+  precond: edm              # EDM-specific options, network preconditioning method
+  sigma_dist: edm           # EDM-specific options, sigma distribution
+  num_steps: 256            # number of sampling steps
+  sample_clip:              # data clipping during sampling
+    min: -1.0
+    max: 1.0
+    scope: x_0              # clip predicted x_0 by default
+
+
+model:
+  name: unet                # the name of the backbone network
+  feature_dims:             # number of channels
+  - 64
+  feature_multipliers:      # multipliers for #channel, each means a down/up sampling block
+    - 1
+    - 1
+    - 1
+    - 1
+    - 2
+    - 4
+    - 6
+  attn_resolutions: null    # disable attention layer to avoid OOM issue
+  num_blocks: 1             # avoid OOM issue
+
+test:
+  batch_size: 0             # testing batch size
+  eval_size: 0              # number of samples to evaluate, set to 0 to use the whole dataset
+
+train:
+  batch_size: 12             # training batch size
+
+  lr_dacey: 1.0             # optimizer (Adam)
+  lr_init: 1.0e-4
+  weight_decay: 0.0
+
+  max_epoch: 50001          # training epochs
+  sample_interval: 1000     # run sampling after <sample_interval> epochs
+  save_interval: 20         # save the model after <save_interval> epochs
+
+  ema_coef:                 # exponential moving average coefficient
+    - 0.9
+    - 0.95
+    - 0.99
+    - 0.999
+    - 0.9999
+  reweight_entry: false     # reweight loss based on original adj, increase weight for entries == 1
+
+  # below are some debug options
+  matching: false           # graph matching loss
+  gt_score_pred: false      # use the ground-truth score to replace the objective, only works for epsilon-prediction mode
+  permutation_aug: false    # permute the input-output randomly to augment training
+  self_cond: true           # use self-conditioning trick
