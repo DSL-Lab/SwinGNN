@@ -28,7 +28,7 @@ python setup/mol_preprocess.py --dataset QM9  # prepare QM9 dataset
 
 ## Training command
 Below we provide the training commands for SwinGNN on graph datasets and molecule datasets.
-Please refer to `/config/edm_swin_gnn` for more training configurations.
+Please refer to `config/edm_swin_gnn` for more training configurations.
 ```bash
 # training cmds on graph dataset (without node/edge attributes), e.g., to train on grid dataset
 python train.py -c config/edm_swin_gnn/grid_edm_swin_gnn_80.yaml --batch_size 10 -m=grid
@@ -70,3 +70,17 @@ python eval.py -p swinGNN-checkpoints/zinc250k/zinc250k_scalar_dim_60/zinc250k_s
 python eval.py -p swinGNN-checkpoints/zinc250k/zinc250k_scalar_dim_96/zinc250k_scalar_dim_96.pth --use_ema 0.9999 -m eval_zinc250k
 ```
 Due to the randomness in the sampling process or difference in hardware, the results may be slightly different from the reported results in the paper.
+
+## Citation
+If you find our code useful for your research, please cite the paper:
+```bibtex
+@article{yan2023swingnn,
+  title={SwinGNN: Rethinking Permutation Invariance in Diffusion Models for Graph Generation},
+  author={Yan, Qi and Liang, Zhengyang and Song, Yang and Liao, Renjie and Wang, Lele},
+  journal={arXiv preprint arXiv:2307.01646},
+  year={2023}
+}
+```
+
+## Contact
+Please submit a Github issue or contact [qi.yan@ece.ubc.ca](qi.yan@ece.ubc.ca) if you have any questions or find any bugs.
