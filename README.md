@@ -83,4 +83,4 @@ If you find our code useful for your research, please cite the paper:
 ```
 
 ## Contact
-Please submit a Github issue or contact [qi.yan@ece.ubc.ca](qi.yan@ece.ubc.ca) if you have any questions or find any bugs.
+Please submit a Github issue or contact [qi.yan@ece.ubc.ca](mailto:qi.yan@ece.ubc.ca) if you have any questions or find any bugs.
