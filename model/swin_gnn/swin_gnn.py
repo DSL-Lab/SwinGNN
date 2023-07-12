@@ -1,4 +1,3 @@
-import pdb
 import torch
 import torch.nn as nn
 import torch.utils.checkpoint as checkpoint
@@ -567,22 +566,6 @@ class PatchEmbed(nn.Module):
 
         assert len(x.shape) == 4
 
-        # # adjs entries to embedding
-        # x = self.init_edge_mlp(x)  # [B, C, N, N] / [B, C, H, W]
-
-        # # get node order-based PE
-        # pe = self.node_feat_pe_mlp(torch.arange(H).to(x)).unsqueeze(0).expand(B, -1, -1)  # [B, N, C] <- [N, C]
-        # pe = mask_nodes(pe, node_flags)
-        # pe = pe.transpose(1, 2)  # [B, C, N] <- [B, N, C]
-        # x = x + pe[:, :, :, None]  # [B, C, N, N] / [B, C, H, W]
-        # x = x + pe[:, :, None, :]  # [B, C, N, N] / [B, C, H, W]
-
-        # # pooling to init patch embedding
-        # x = self.proj(x)  # [B, C, pH, pW] <- [B, C, N, N] / [B, C, H, W]
-        #
-        # # reshape H and W into one dimension
-        # x = x.flatten(2).transpose(1, 2)  # [B, (N/4)^2, C] / [B, pH*pW, C]
-
         x = self.proj(x).flatten(2).transpose(1, 2)  # B Ph*Pw C
         if self.norm is not None:
             x = self.norm(x)
@@ -850,7 +833,6 @@ class NodeAdjSwinGNN(nn.Module):
         self.out_chans_adj = out_chans_adj  # adj output dim
         self.out_chans_node = out_chans_node  # node output dim
 
-        # self.feat_emb = nn.Linear(feat_dim, 64)
         # split image into non-overlapping patches
         noise_emb_channels = 512
         self.patch_embed = PatchEmbed(
@@ -976,7 +958,6 @@ class NodeAdjSwinGNN(nn.Module):
         return x
 
     def forward(self, adj, node, node_flags, noise_labels, self_cond_x=None, self_cond_feat=None):
-        _flag_node_only = len(node_flags.shape) == 3
         # Mapping. Noise conditioning.
         emb = self.map_noise(noise_labels)
         emb = silu(self.map_layer0(emb))
@@ -1006,9 +987,6 @@ class NodeAdjSwinGNN(nn.Module):
             node_self_cond = torch.zeros_like(node) if self_cond_feat is None else _shape_trimming_feat(self_cond_feat)
             node = torch.cat([node_self_cond, node], dim=1)  # [B, 2 * C, N]
 
-        # feat = self.feat_emb(feat)  # [B, N, C]
-        # feat = feat.unsqueeze(2).repeat(1, 1, feat.shape[1], 1).permute(0, 3, 1, 2) - feat.unsqueeze(1).repeat(1, feat.shape[1], 1, 1).permute(0, 3, 1, 2) # [B, C, N, N]
-
         # concatenate node edge values directly
         node_mat = node.unsqueeze(-1).expand(-1, -1, -1, node.size(-1))  # [B, C, N, N]
         node_mat_t = node_mat.transpose(-1, -2)  # [B, C, N, N]
@@ -1034,10 +1012,7 @@ class NodeAdjSwinGNN(nn.Module):
             node_out = self.readout_node_mlp(node_feat_vec.permute(0, 2, 1))  # [B, N, C]
 
         # Enforce matrix symmetry
-        if not _flag_node_only:
-            node_out = mask_nodes(node_out, node_flags)
-        else:
-            node_out = node_out * 0.0
+        node_out = mask_nodes(node_out, node_flags)
         adj_out = mask_adjs(adj_out, node_flags)
         if self.symmetric_noise:
             adj_out = 0.5 * (adj_out + adj_out.transpose(-1, -2))

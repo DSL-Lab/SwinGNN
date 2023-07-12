@@ -104,7 +104,6 @@ def load_model(ckp_data, model, weight_keyword):
             elif ckp_key.startswith('module.') and not cur_key.startswith('module.'):
                 assert 'module.' + cur_key == ckp_key
             else:
-                pdb.set_trace()
                 raise NotImplementedError
             to_load_state_dict[cur_key] = ckp_data[weight_keyword][ckp_key]
         assert set(cur_keys) == set(list(to_load_state_dict.keys()))

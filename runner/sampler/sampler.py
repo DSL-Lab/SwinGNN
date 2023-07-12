@@ -48,11 +48,6 @@ def go_sampling(epoch, model, dist_helper, test_dl, mc_sampler, config, writer=N
             total_samples = config.train.batch_size
         batch_size = config.train.batch_size
 
-        # DEBUG: permutation augmentation exp, we sample a fixed number of samples
-        if 'perm' in config.dataset.name:
-            total_samples = 100
-            batch_size = 100
-            assert total_samples % len(test_dl.dataset) == 0
     os.makedirs(shared_plot_dir, exist_ok=True)
     logging.info("Sampling {:d} samples with batch size {:d}".format(total_samples, batch_size))
     if not isinstance(init_noise_strengths, list) and not isinstance(init_noise_strengths, tuple):
@@ -215,23 +210,6 @@ def go_sampling(epoch, model, dist_helper, test_dl, mc_sampler, config, writer=N
 
             result_dict = visualize_evaluate_final_adjs(init_adjs, final_samples, test_adjs_gt, test_node_flags, mc_sampler, fig_title, config.logdir)
             logging.info('MMD at {:s} with config {:s}: {}'.format(epoch_or_eval_stamp, plot_subtitle, result_dict))
-
-            # DEBUG: check novelty for permutation experiment
-            if 'perm_' in config.dataset.name:
-                test_graph_ls = test_dl.test_graph_ls       # a list of networkx graphs
-                generated_graph_ls = final_samples_graph    # a list of networkx graphs
-
-                num_non_novel_sample = 0
-                for g_gen in generated_graph_ls:
-                    for g_test in test_graph_ls:
-                        if nx.is_isomorphic(g_gen, g_test) and nx.could_be_isomorphic(g_gen, g_test):
-                            # found a match
-                            num_non_novel_sample += 1
-                            break
-                assert num_non_novel_sample <= len(generated_graph_ls)
-                logging.info("Number of non-novel samples: {:d}/{:d}, ratio: {:.2f}".format(
-                    num_non_novel_sample, len(generated_graph_ls), num_non_novel_sample / len(generated_graph_ls)))
-                result_dict['non_novelty'] = num_non_novel_sample / len(generated_graph_ls)
 
             # save to tensorboard
             if writer is not None:

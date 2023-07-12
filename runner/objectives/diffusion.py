@@ -1,9 +1,7 @@
-import pdb
-
 import torch
 import numpy as np
 
-from utils.graph_utils import check_adjs_symmetry, mask_adjs, mask_nodes, add_sym_normal_noise, mask_incs
+from utils.graph_utils import check_adjs_symmetry, mask_adjs, mask_nodes, add_sym_normal_noise
 from . import TrainingObjectiveGenerator
 
 
@@ -113,40 +111,7 @@ class DiffusionObjectiveGenerator(TrainingObjectiveGenerator):
         Forward diffusion process: scale down the original data and add Gaussian noise.
         """
 
-        if self.max_steps == 1:
-            # debug mode
-            noisy_adjs, noise_added = add_sym_normal_noise(adjs,
-                                                           scales=torch.ones_like(scale_coefs) * self.other_params.scaling_coef,
-                                                           sigmas=torch.ones_like(scale_coefs) * self.other_params.betas.min,
-                                                           node_flags=node_flags)
-            if self.other_params.noise_ctrl == 'fixed':
-                if self.noisy_adjs is None and self.noise_added is None:
-                    self.noisy_adjs, self.noise_added = noisy_adjs.to(sigmas.device), noise_added.to(sigmas.device)
-                else:
-                    noisy_adjs, noise_added = self.noisy_adjs.to(sigmas.device), self.noise_added.to(sigmas.device)
-            elif self.other_params.noise_ctrl.startswith('fixed_'):
-                num_noisy_adjs = int(self.other_params.noise_ctrl.split('_')[-1])
-                if self.noisy_adjs is None and self.noise_added is None:
-                    self.noisy_adjs, self.noise_added = [], []
-                    for _ in range(num_noisy_adjs):
-                        # create and store many noise data
-                        new_noisy_adjs, new_noise_added = add_sym_normal_noise(
-                            adjs, scales=torch.ones_like(scale_coefs) * self.other_params.scaling_coef,
-                            sigmas=torch.ones_like(scale_coefs) * self.other_params.betas.min,
-                            node_flags=node_flags)
-                        self.noisy_adjs.append(new_noisy_adjs)
-                        self.noise_added.append(new_noise_added)
-
-                assert len(self.noisy_adjs) == num_noisy_adjs
-                noise_idx = np.random.choice(num_noisy_adjs)  # integer
-                noisy_adjs, noise_added = self.noisy_adjs[noise_idx].to(sigmas.device), self.noise_added[noise_idx].to(sigmas.device)
-            elif self.other_params.noise_ctrl == 'random':
-                pass
-            else:
-                raise NotImplementedError
-        else:
-            # normal mode
-            noisy_adjs, noise_added = add_sym_normal_noise(adjs, scale_coefs, sigmas, node_flags)
+        noisy_adjs, noise_added = add_sym_normal_noise(adjs, scale_coefs, sigmas, node_flags)
 
         check_adjs_symmetry(noisy_adjs)
 

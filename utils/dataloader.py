@@ -14,7 +14,6 @@ from utils.attribute_code import attribute_converter, reshape_node_attr_vec_to_m
 from utils.graph_utils import mask_adjs, mask_nodes, pad_adjs
 from utils.visual_utils import plot_graphs_list
 from utils.mol_utils import load_smiles, canonicalize_smiles, mols_to_nx, smiles_to_mols
-from runner.sanity_check_helper import get_random_permutation
 
 
 def load_data(config, dist_helper, eval_mode=False):
@@ -108,10 +107,6 @@ def load_dataset_mol(config):
     assert config.dataset.name.lower() in ['qm9', 'zinc250k']
     adj_ls, x_ls, node_flags_ls = [], [], []
 
-    # DEBUG
-    # unique_adj_types = []
-    # before_ddpm_adj_ls, before_ddpm_x_ls = [], []
-
     # TODO: remove the for loop and do everything with tensor slicing
     for i, g in enumerate(graphs):
         node, adj = g  # [N] + [4, N, N], N=4 for QM9, N=38 for ZINC250K
@@ -127,12 +122,7 @@ def load_dataset_mol(config):
 
         adj = transform(adj)  # [N, N]
         assert adj.equal(adj.t()), "adjacency matrix is not symmetric"
-        # DEBUG
-        # unique_type = torch.unique(adj).numpy().tolist()
-        # for item in unique_type:
-        #     if item not in unique_adj_types:
-        #         unique_adj_types.append(item)
-        #     print(unique_adj_types)
+
         if config.dataset.name == 'qm9':
             node = torch.from_numpy(node).to(torch.float32)  # [N = 9]
             node_flags = node > 0  # [9]
@@ -151,10 +141,6 @@ def load_dataset_mol(config):
         adj_ls.append(adj)  # [N, N]
         x_ls.append(node)  # [N]
         node_flags_ls.append(node_flags)  # [N]
-
-        # DEBUG
-        # before_ddpm_x_ls.append(node)
-        # before_ddpm_adj_ls.append(adj)
 
     # batch process
     node = torch.stack(x_ls, dim=0)  # [B, N]
@@ -230,7 +216,7 @@ def load_dataset_general(config):
             logging.info('load dataset: ' + info)
         return graph_list
 
-    def _nx_graphs_to_dataset(graph_list, perm_aug=None, ddpm_scale=True):
+    def _nx_graphs_to_dataset(graph_list, ddpm_scale=True):
         """Turn the list of networkx graphs into pytorch tensors and make TensorDataset."""
         adjs_list = []
         for g in graph_list:
@@ -257,62 +243,12 @@ def load_dataset_general(config):
                                               flag_nodes=True, flag_adjs=False,
                                               flag_in_ddpm_range=False, flag_out_ddpm_range=True)
 
-        if perm_aug is not None and perm_aug > 1:
-            # augment the adjacency matrix with certain number of permutations
-            assert isinstance(perm_aug, int)
-            num_nodes = adjs_tensor.size(1)  # B
-
-            # [X, N, N]
-            perm_mats = torch.from_numpy(get_random_permutation(num_nodes, num_perm=perm_aug)).to(adjs_tensor)
-
-            # expand the datasets by permutation
-            adjs_tensor = adjs_tensor.unsqueeze(0).expand(perm_aug, -1, -1, -1)  # [X, B, N, N]
-            node_feat_tensor = node_feat_tensor.unsqueeze(0).expand(perm_aug, -1, -1, -1)  # [X, B, N, F]
-            node_flags_tensor = node_flags_tensor.unsqueeze(0).expand(perm_aug, -1, -1)  # [X, B, N]
-            perm_mats = perm_mats.unsqueeze(1).expand(-1, adjs_tensor.size(1), -1, -1)  # [X, B, N, N]
-
-            # permute the graph data
-            adjs_tensor = perm_mats @ adjs_tensor @ perm_mats.transpose(-1, -2)  # [X, B, N, N]
-            adjs_tensor = adjs_tensor.reshape(-1, num_nodes, num_nodes)  # [X*B, N, N]
-
-            node_feat_tensor = perm_mats @ node_feat_tensor  # [X, B, N, F]
-            node_feat_tensor = node_feat_tensor.reshape(-1, num_nodes, node_feat_tensor.size(-1))  # [X*B, N, F]
-
-            node_flags_tensor = perm_mats @ node_flags_tensor.unsqueeze(-1)  # [X, B, N]
-            node_flags_tensor = node_flags_tensor.reshape(-1, num_nodes)  # [X*B, N]
-
-            logging.info('augment dataset with {:d} permutations, total #data points: {:d} -----> {:d}'.format(
-                perm_aug, len(adjs_list), adjs_tensor.size(0)))
-
         tensor_ds = TensorDataset(adjs_tensor, node_feat_tensor, node_flags_tensor)
         return tensor_ds
 
-    config_dataset_name = config.dataset.name
-    if 'perm' in config_dataset_name:
-        num_perm_aug = int(config_dataset_name.split('_')[-1])
-    else:
-        num_perm_aug = None
-
-    if 'overfit' in config_dataset_name:
-        # simple overfitting dataset with 2 graphs only
-        train_graph_list = build_graph_to_overfit(config_dataset_name)
-        test_graph_list = train_graph_list
-    elif 'perm_rr16_' in config_dataset_name:
-        # 10 random regular graphs with 16 nodes
-        train_graph_list = [nx.random_regular_graph(d=d, n=16, seed=0) for d in range(2, 12)]
-        test_graph_list = train_graph_list
-    elif 'perm_rr32_' in config_dataset_name:
-        # 10 random regular graphs with 32 nodes
-        train_graph_list = [nx.random_regular_graph(d=d, n=32, seed=0) for d in range(2, 12)]
-        test_graph_list = train_graph_list
-    elif 'perm_wlmix_' in config_dataset_name:
-        # 10 graphs consisting of common WL test pairs
-        train_graph_list = build_graphs_wl_test_mixture()
-        test_graph_list = train_graph_list
-    else:
-        # pre-created public graph datasets
-        train_graph_list = _load_nx_object_from_pickle(data_dir='data', file_name=config.dataset.name + '_train')
-        test_graph_list = _load_nx_object_from_pickle(data_dir='data', file_name=config.dataset.name + '_test')
+    # pre-created public graph datasets
+    train_graph_list = _load_nx_object_from_pickle(data_dir='data', file_name=config.dataset.name + '_train')
+    test_graph_list = _load_nx_object_from_pickle(data_dir='data', file_name=config.dataset.name + '_test')
 
     plot_graphs_list(train_graph_list, title='dataset_preview', max_num=16, save_dir=config.logdir)
 
@@ -325,91 +261,9 @@ def load_dataset_general(config):
     count_graph_statistics(train_graph_list, 'training set')
     count_graph_statistics(test_graph_list, 'testing set')
 
-    train_ds = _nx_graphs_to_dataset(train_graph_list, perm_aug=num_perm_aug, ddpm_scale=True)
-    if num_perm_aug is None:
-        test_ds = _nx_graphs_to_dataset(test_graph_list, perm_aug=None, ddpm_scale=True)
-    else:
-        # with permutation augmentation, we use a subset of the training data as the testing data
-        # the size of testing set is the same as the original training set
-        test_ds = TensorDataset(*train_ds[:len(train_graph_list)])
+    train_ds = _nx_graphs_to_dataset(train_graph_list, ddpm_scale=True)
+    test_ds = _nx_graphs_to_dataset(test_graph_list, ddpm_scale=True)
     return train_ds, test_ds, train_graph_list, test_graph_list
-
-
-def build_graph_to_overfit(config_dataset_name):
-    """
-    Generate pairs of WL-test graphs for overfitting experiments.
-    """
-    if '1wl_ring_6' in config_dataset_name:
-        # 1-wl-insufficient ring
-        train_graph_list = [nx.cycle_graph(6)]
-    elif '1wl_ring_3_3' in config_dataset_name:
-        # 1-wl-insufficient 3 + 3 ring, v.s. 6-node ring
-        _graph = nx.disjoint_union(nx.cycle_graph(3), nx.cycle_graph(3))
-        train_graph_list = [_graph]
-    elif '1wl_pair_ring_6' in config_dataset_name:
-        # 1-wl-insufficient 3 + 3 ring and v.s. 6-node ring
-        _graph = nx.disjoint_union(nx.cycle_graph(3), nx.cycle_graph(3))
-        train_graph_list = [_graph, nx.cycle_graph(6)]
-    elif '1wl_clique_6_6' in config_dataset_name:
-        # 1-wl insufficient cliques, two triangles connected by an edge
-        _graph = nx.disjoint_union(nx.cycle_graph(6), nx.cycle_graph(6))
-        _graph.add_edges_from([(0, 6)])
-        train_graph_list = [_graph]
-    elif '1wl_joint_2_clique_6_6' in config_dataset_name:
-        _graph = nx.compose(nx.cycle_graph(7), nx.cycle_graph(np.arange(5, 12)))  # 2 nodes are overlapped
-        train_graph_list = [_graph]
-    elif '1wl_pair_clique_12' in config_dataset_name:
-        # the above two graphs
-        _graph_0 = nx.disjoint_union(nx.cycle_graph(6), nx.cycle_graph(6))
-        _graph_0.add_edges_from([(0, 6)])
-        _graph_1 = nx.compose(nx.cycle_graph(7), nx.cycle_graph(np.arange(5, 12)))  # 2 nodes are overlapped
-        train_graph_list = [_graph_0, _graph_1]
-    elif '3wl_box_6' in config_dataset_name:
-        # 3-wl box
-        train_graph_list = [nx.grid_2d_graph(2, 3)]
-    elif '3wl_clique_3_3' in config_dataset_name:
-        # 3-wl two triangles connected by an edge
-        _graph = nx.disjoint_union(nx.cycle_graph(3), nx.cycle_graph(3))
-        _graph.add_edges_from([(0, 3)])
-        train_graph_list = [_graph]
-    elif '3wl_pair_box_6' in config_dataset_name:
-        # the above two graphs
-        _graph = nx.disjoint_union(nx.cycle_graph(3), nx.cycle_graph(3))
-        _graph.add_edges_from([(0, 3)])
-        train_graph_list = [nx.grid_2d_graph(2, 3), _graph]
-    else:
-        raise NotImplementedError
-    return train_graph_list
-
-
-def build_graphs_wl_test_mixture():
-    """
-    Generate a small set of graphs used for the WL test.
-    """
-    _graph_cycles_3_3_0 = nx.disjoint_union(nx.cycle_graph(3), nx.cycle_graph(3))  # no node or no edge
-    _graph_cycle_6 = nx.cycle_graph(6)
-
-    _graph_cycles_6_6_1 = nx.disjoint_union(nx.cycle_graph(6), nx.cycle_graph(6))
-    _graph_cycles_6_6_1.add_edges_from([(0, 6)])  # 1 edge connects two cliques
-    _graph_cycles_7_7_2o = nx.compose(nx.cycle_graph(7), nx.cycle_graph(np.arange(5, 12)))  # 2 nodes are overlapped
-
-    _graph_cycles_3_3_1 = nx.disjoint_union(nx.cycle_graph(3), nx.cycle_graph(3))
-    _graph_cycles_3_3_1.add_edges_from([(0, 3)])  # 1 edge connects two cliques
-    _graph_grid_2_3 = nx.grid_2d_graph(2, 3)
-
-    """other graphs"""
-    _graph_grid_3_3 = nx.grid_2d_graph(3, 3)
-    _graph_grid_4_4 = nx.grid_2d_graph(4, 4)
-    _graph_cycles_4_4_0 = nx.disjoint_union(nx.cycle_graph(4), nx.cycle_graph(4))  # no node or no edge
-    _graph_cycles_4_4_1 = nx.disjoint_union(nx.cycle_graph(4), nx.cycle_graph(4))
-    _graph_cycles_4_4_1.add_edges_from([(0, 4)])  # 1 edge connects two cliques
-
-    train_graph_list = [_graph_cycles_3_3_0, _graph_cycle_6,
-                        _graph_cycles_6_6_1, _graph_cycles_7_7_2o,
-                        _graph_cycles_3_3_1, _graph_grid_2_3,
-                        _graph_grid_3_3, _graph_grid_4_4,
-                        _graph_cycles_4_4_0, _graph_cycles_4_4_1]
-    return train_graph_list
 
 
 def count_graph_statistics(graph_list, section_nm):

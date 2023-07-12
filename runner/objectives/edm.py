@@ -1,10 +1,7 @@
-import pdb
-
 from collections import namedtuple
 import torch
-import numpy as np
 
-from utils.graph_utils import check_adjs_symmetry, mask_adjs, mask_nodes, add_sym_normal_noise, mask_incs
+from utils.graph_utils import check_adjs_symmetry, mask_adjs, mask_nodes, add_sym_normal_noise
 from . import TrainingObjectiveGenerator
 
 VP_PARAMS = namedtuple('vp_params',
@@ -235,8 +232,6 @@ class NodeAdjEDMObjectiveGenerator(EDMObjectiveGenerator):
     """helper functions regarding preconditioning and loss"""
     def get_network_input(self, clean_adjs, clean_x=None, node_flags=None, sigmas=None, *args, **kwargs):
         assert len(sigmas) == len(clean_adjs)
-        _flag_node_only = len(node_flags.shape) == 3  # [B, N, N], this is actually adjacency matrix flags
-
         # add noise to the adjacency matrix
         unit_scales = torch.ones_like(sigmas)  # [B]
         noisy_adjs, noise_added_to_adjs = add_sym_normal_noise(clean_adjs, unit_scales, sigmas, node_flags,
@@ -247,10 +242,7 @@ class NodeAdjEDMObjectiveGenerator(EDMObjectiveGenerator):
         # add noise to the node attributes
         _sigmas_shape = [sigmas.shape[0]] + [1] * (len(clean_x.shape) - 1)  # clean_x has shape [B, N] or [B, N, F]
         noise_added_to_x = torch.randn_like(clean_x) * sigmas.view(_sigmas_shape)
-        if _flag_node_only:
-            noise_added_to_x = torch.zeros_like(noise_added_to_x)
-        else:
-            noise_added_to_x = mask_nodes(noise_added_to_x, node_flags)
+        noise_added_to_x = mask_nodes(noise_added_to_x, node_flags)
 
         noisy_x = clean_x + noise_added_to_x
 

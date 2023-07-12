@@ -113,7 +113,6 @@ def attribute_sanity_check(in_attr: torch.Tensor, attr_flags: torch.Tensor, enco
             target_tensor = torch.tensor([0, 1], device=in_attr.device)
         _unique_attr = in_attr.unique(sorted=True)
         if len(_unique_attr) == 2:
-            pdb.set_trace()
             assert (_unique_attr == target_tensor[:2]).all()  # int
         else:
             assert (_unique_attr == target_tensor).all()

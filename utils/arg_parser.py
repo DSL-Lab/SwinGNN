@@ -89,12 +89,6 @@ def parse_arguments(mode='train'):
         parser.add_argument('--edge_encoding', type=str, default=None,
                             help='To overwrite the edge encoding specified in the config.')
 
-        # special ablations for node and edge attribute encoding
-        parser.add_argument('--node_only', default=None, action='store_true',
-                            help='To remove edge attributes. Reshape the node attributes in the shape of adj matrix')
-        parser.add_argument('--binary_edge', default=None, action='store_true',
-                            help='To remove node attributes and only use binary edge attributes (adj topology).')
-
         args = parser.parse_args()
     elif mode == 'eval':
         parser.add_argument('-p', '--model_path', type=str, default=None, required=True,
@@ -188,8 +182,7 @@ def parse_arguments(mode='train'):
         # overwrite training parameters
         _train_overwrite_keywords = ['self_cond', 'max_epoch', 'lr_init', 'batch_size',
                                      'sample_interval', 'save_interval',
-                                     'node_encoding', 'edge_encoding',
-                                     'node_only', 'binary_edge']
+                                     'node_encoding', 'edge_encoding']
         for keyword in _train_overwrite_keywords:
             if args_dict[keyword] is not None:
                 _original_param = config.train[keyword]
@@ -382,19 +375,4 @@ def set_training_loss_logger(save_dir):
     logging.info("Training and validation loss are recorded at {:s} and {:s} respectively".format(
         log_train_loss, log_test_loss))
     return f_train_loss, f_test_loss
-
-
-def get_gpu_memory_status(visible=True):
-    """
-    Print GPU memory status.
-    """
-    current_usage = []
-    for i in range(torch.cuda.device_count()):
-        current_usage.append((torch.cuda.mem_get_info(i)[1] - torch.cuda.mem_get_info(i)[0]) / 1024**2)
-        if visible:
-            logging.info("GPU ID: {:d}, occupied: {:.1f} MB / {:.1f} MB".format(
-                i,
-                (torch.cuda.mem_get_info(i)[1] - torch.cuda.mem_get_info(i)[0]) / 1024**2,
-                torch.cuda.mem_get_info(i)[1] / 1024**2))
-    return current_usage
 

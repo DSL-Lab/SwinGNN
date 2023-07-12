@@ -1,12 +1,7 @@
 import logging
-import pdb
-
-import numpy as np
-from sympy.utilities.iterables import multiset_permutations
 
 import torch
 import torch.nn as nn
-from torch import nn as nn
 
 from utils.graph_utils import mask_adjs, mask_nodes
 from runner.sanity_check_helper import get_all_permutation
@@ -142,14 +137,6 @@ class RainbowLoss(nn.Module):
         if self.all_perm_mat is None:
             self.all_perm_mat = torch.from_numpy(get_all_permutation(net_target.size(-1))).to(net_target)  # [X, N, N]
         all_perm_mat = self.all_perm_mat
-
-        # permute based on the prediction only, this is buggy
-        # err_before = torch.linalg.matrix_norm((net_pred - net_target).detach()).item()
-        # net_target_perm = all_perm_mat @ net_target @ all_perm_mat.transpose(-1, -2)  # [X, N, N]
-        # pred_target_dist = (net_pred - net_target_perm).square()  # [X, N, N]
-        # pred_target_dist = mask_adjs(pred_target_dist, node_flags).sum(dim=[-1, -2])  # [X]
-        # i_best_matching = pred_target_dist.argmin().item()  # integer
-        # net_target = net_target_perm[i_best_matching]
 
         # permute the network target such that it's closest to the input (perturbed adjs)
         err_before = torch.linalg.matrix_norm((net_pred - net_target).detach()).item()
