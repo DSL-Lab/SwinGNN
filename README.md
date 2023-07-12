@@ -1,5 +1,7 @@
 # SwinGNN: Rethinking Permutation Invariance in Diffusion Models for Graph Generation
 This repository contains the official implementation of the SwinGNN model in PyTorch.
+
+Pointers: [arxiv](https://arxiv.org/abs/2307.01646) | [code](https://github.com/DSL-Lab/SwinGNN)
 ## Get started
 ### Install dependencies
 ```bash
@@ -71,8 +73,9 @@ python eval.py -p swinGNN-checkpoints/zinc250k/zinc250k_scalar_dim_96/zinc250k_s
 ```
 Due to the randomness in the sampling process or difference in hardware, the results may be slightly different from the reported results in the paper.
 
-## Citation
-If you find our code useful for your research, please cite the paper:
+## Citation and Acknowledgements
+**Bibtex.**
+If you find our code useful for your research, please cite the [paper](https://arxiv.org/abs/2307.01646):
 ```bibtex
 @article{yan2023swingnn,
   title={SwinGNN: Rethinking Permutation Invariance in Diffusion Models for Graph Generation},
@@ -81,6 +84,10 @@ If you find our code useful for your research, please cite the paper:
   year={2023}
 }
 ```
+**Acknowledgments and Disclosure of Funding.**
+This work was funded, in part, by NSERC DG Grants (No. RGPIN-2022-04636 and No. RGPIN-2019-05448), the NSERC Collaborative Research and Development Grant (No. CRDPJ 543676-19), the Vector Institute for AI, Canada CIFAR AI Chair, and Oracle Cloud credits. Resources used in preparing this research were provided, in part, by the Province of Ontario, the Government of Canada through CIFAR, and companies sponsoring the Vector Institute
+(`www.vectorinstitute.ai`), Advanced Research Computing at the University of British Columbia,
+the Digital Research Alliance of Canada (`alliancecan.ca`), and the Oracle for Research program.
 
 ## Contact
 Please submit a Github issue or contact [qi.yan@ece.ubc.ca](mailto:qi.yan@ece.ubc.ca) if you have any questions or find any bugs.
