@@ -1,7 +1,13 @@
 # SwinGNN: Rethinking Permutation Invariance in Diffusion Models for Graph Generation
-This repository contains the official implementation of the SwinGNN model in PyTorch.
+This repository contains the official implementation of the [SwinGNN](https://arxiv.org/abs/2307.01646) model in PyTorch.
 
 Pointers: [arxiv](https://arxiv.org/abs/2307.01646) | [code](https://github.com/DSL-Lab/SwinGNN)
+
+## Sampling processes of learned models on grid and protein datasets
+![](asset/animation_grid.gif)
+
+![](asset/animation_dd_protein.gif)
+
 ## Get started
 ### Install dependencies
 ```bash
