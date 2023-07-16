@@ -176,12 +176,11 @@ def visualize_interim_adjs(interim_samples, gt_samples, node_flags, objective, s
         interim_x_0_pred = torch.index_select(interim_x_0_pred, dim=0, index=torch.tensor(select_steps).long())
         plot_interim_adjs(interim_x_0_pred, select_steps * step_per_interim_adjs, plot_save_dir, comment='ddpm_x_0_pred')
     elif objective == 'edm':
-        # interim_x_t = interim_x_t[:, 0, :, :]  # [K, N, N] <- [K, B, N, N]
-        # interim_x_t = torch.index_select(interim_x_t, dim=0, index=torch.tensor(select_steps).long())
-        # plot_interim_adjs(interim_x_t, select_steps * step_per_interim_adjs, plot_save_dir, comment='edm_x_t')
-
+        interim_x_t = interim_x_t[:, 0, :, :]  # [K, N, N] <- [K, B, N, N]
         interim_x_t = torch.index_select(interim_x_t, dim=0, index=torch.tensor(select_steps).long())
-        plot_group_interim_adjs(interim_x_t, node_flags, select_steps * step_per_interim_adjs, plot_save_dir, comment='edm_x_t_group')
+        plot_interim_adjs(interim_x_t, select_steps * step_per_interim_adjs, plot_save_dir, comment='edm_x_t')
+        # interim_x_t = torch.index_select(interim_x_t, dim=0, index=torch.tensor(select_steps).long())
+        # plot_group_interim_adjs(interim_x_t, node_flags, select_steps * step_per_interim_adjs, plot_save_dir, comment='edm_x_t_group')
 
     # Evaluate and show interim sample quality (RMSE w.r.t. ground-truth data [-1, 1])
     logging.info('Evaluate interim adjs error...')
