@@ -4,9 +4,9 @@ This repository contains the official implementation of the [SwinGNN](https://ar
 Pointers: [arxiv](https://arxiv.org/abs/2307.01646) | [code](https://github.com/DSL-Lab/SwinGNN)
 
 ## Sampling processes of learned models on grid and protein datasets
-![](asset/animation_grid.gif)
+![](asset/animation_grid_slow.gif)
 
-![](asset/animation_dd_protein.gif)
+![](asset/animation_dd_protein_slow.gif)
 
 ## Get started
 ### Install dependencies
