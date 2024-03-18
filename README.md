@@ -13,20 +13,29 @@ Pointers: [arxiv](https://arxiv.org/abs/2307.01646) | [code](https://github.com/
 ## Get started
 ### Install dependencies
 ```bash
-# option 1: python venv
+# option 1: python 3.8 venv
 python -m venv venvscorenet
 source venvscorenet/bin/activate
 pip install -U pip
+pip install cython==0.29.32 
+pip install pomegranate 
 pip install -r setup/requirements.txt
 
 # option 2: conda
-conda env create -f setup/conda.yaml
-conda activate scorenet
+conda create -n scorenet python=3.8 
+conda activate scorenet 
+pip install -U pip 
+pip install cython==0.29.32 
+pip install pomegranate 
+pip install -r setup/requirements.txt
 
 # compile ORCA for orbit statistics evaluation
 export PROJ_DIR=$(pwd)
 cd evaluation/orca && g++ -O2 -std=c++11 -o orca orca.cpp && cd $PROJ_DIR
 ```
+Please be aware that it may be crucial to first do `pip install cython==0.29.32` and `pip install pomegranate` to prevent potential issues when installing the `molsets` (`moses`) package, which is necessary for calculating molecule metrics. Unfortunately, the original `molsets` (`moses`) package at https://github.com/molecularsets/moses is no longer actively maintained. 
+It's important to install these dependencies in the correct order to avoid potential installation errors.
+
 ### Setup datasets
 ```bash
 # prepare datasets
