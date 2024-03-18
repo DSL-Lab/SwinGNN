@@ -3,7 +3,7 @@ torch
 torchvision
 torchaudio
 pandas==1.5.0
-cython
+cython==0.29.32
 easydict
 matplotlib
 networkx==2.8.7
