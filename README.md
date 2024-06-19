@@ -1,5 +1,6 @@
 # SwinGNN: Rethinking Permutation Invariance in Diffusion Models for Graph Generation
 This repository contains the official implementation of the [SwinGNN](https://arxiv.org/abs/2307.01646) model in PyTorch.
+The SwinGNN paper was accepted at [TMLR](https://openreview.net/forum?id=abfi5plvQ4) 2024/06.
 
 Pointers: [arxiv](https://arxiv.org/abs/2307.01646) | [code](https://github.com/DSL-Lab/SwinGNN)
 
@@ -92,6 +93,7 @@ Due to the randomness in the sampling process or difference in hardware, the res
 
 ## Citation and Acknowledgements
 **Bibtex.**
+\
 If you find our code useful for your research, please cite the [paper](https://arxiv.org/abs/2307.01646):
 ```bibtex
 @article{yan2023swingnn,
@@ -102,9 +104,10 @@ If you find our code useful for your research, please cite the [paper](https://a
 }
 ```
 **Acknowledgments and Disclosure of Funding.**
-This work was funded, in part, by NSERC DG Grants (No. RGPIN-2022-04636 and No. RGPIN-2019-05448), the NSERC Collaborative Research and Development Grant (No. CRDPJ 543676-19), the Vector Institute for AI, Canada CIFAR AI Chair, and Oracle Cloud credits. Resources used in preparing this research were provided, in part, by the Province of Ontario, the Government of Canada through CIFAR, and companies sponsoring the Vector Institute
-(`www.vectorinstitute.ai`), Advanced Research Computing at the University of British Columbia,
-the Digital Research Alliance of Canada (`alliancecan.ca`), and the Oracle for Research program.
+\
+This work was funded, in part, by NSERC DG Grants (No. RGPIN-2022-04636 and No. RGPIN-2019-05448), the NSERC Collaborative Research and Development Grant (No. CRDPJ 543676-19), the Vector Institute for AI, Canada CIFAR AI Chair, and Oracle Cloud credits. 
+Resources used in preparing this research were provided, in part, by the Province of Ontario, the Government of Canada through the Digital Research Alliance of Canada `alliance.can.ca`, and companies sponsoring the Vector Institute `www.vectorinstitute.ai/#partners`, Advanced Research Computing at the University of British Columbia, and the Oracle for Research program. 
+Additional hardware support was provided by John R. Evans Leaders Fund CFI grant and the Digital Research Alliance of Canada under the Resource Allocation Competition award.
 
 ## Contact
 Please submit a Github issue or contact [qi.yan@ece.ubc.ca](mailto:qi.yan@ece.ubc.ca) if you have any questions or find any bugs.
