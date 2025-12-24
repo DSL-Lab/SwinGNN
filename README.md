@@ -2,7 +2,7 @@
 This repository contains the official implementation of the [SwinGNN](https://arxiv.org/abs/2307.01646) model in PyTorch.
 The SwinGNN paper was accepted at [TMLR](https://openreview.net/forum?id=abfi5plvQ4) 2024/06.
 
-Pointers: [arxiv](https://arxiv.org/abs/2307.01646) | [code](https://github.com/DSL-Lab/SwinGNN)
+Pointers: [arxiv](https://arxiv.org/abs/2307.01646) | [code](https://github.com/DSL-Lab/SwinGNN) | [blog](https://qiyan98.github.io/blog/2025/gen-graph/)
 
 ## Sampling processes of learned models on grid, protein and molecule datasets
 ![](asset/animation_grid_slow_v1.gif)
